@@ -132,7 +132,7 @@ Access the API documentation at: `http://localhost:8081/swagger-ui/index.html`
 
 ### Contributing
 
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! 
 
 ### License
 
@@ -140,4 +140,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ### Contact
 
-For any inquiries or support, please contact [zakariafarih142@gmail.com](mailto:your_email@example.com).
+For any inquiries or support, please contact [zakariafarih142@gmail.com](mailto:zakariafarih142@gmail.com).
