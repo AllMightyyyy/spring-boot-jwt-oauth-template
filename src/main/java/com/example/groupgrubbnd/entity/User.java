@@ -67,8 +67,6 @@ public class User implements UserDetails {
         return email;
     }
 
-    // Other UserDetails methods
-
     @Override
     @Schema(hidden = true)
     public boolean isAccountNonExpired() {

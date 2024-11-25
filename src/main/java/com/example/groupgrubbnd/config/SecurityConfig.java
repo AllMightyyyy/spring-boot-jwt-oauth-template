@@ -112,8 +112,8 @@ public class SecurityConfig {
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        authoritiesConverter.setAuthorityPrefix("ROLE_"); // Use "ROLE_" as prefix for roles
-        authoritiesConverter.setAuthoritiesClaimName("roles"); // Map the "roles" claim from JWT
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        authoritiesConverter.setAuthoritiesClaimName("roles");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);

@@ -12,13 +12,13 @@ public class AccountVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Auto-generated primary key
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
     @Column(unique = true)
-    private String token; // Verification token
+    private String token;
 }
 

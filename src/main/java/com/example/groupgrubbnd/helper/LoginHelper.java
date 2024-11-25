@@ -285,7 +285,7 @@ public class LoginHelper {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code);
-        params.add("redirect_uri", "http://localhost:8081/oauth2/callback/google"); // Ensure this matches your OAuth2 configuration
+        params.add("redirect_uri", "http://localhost:8081/oauth2/callback/google");
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
         params.add("grant_type", "authorization_code");
@@ -530,7 +530,7 @@ public class LoginHelper {
         }
 
         // Update user record
-        user.setPassword(passwordEncoder.encode(newPassword)); // Encode the password
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setEnabled(true); // Activate the user
         user.setEmailVerified(true); // Mark as verified
         userRepository.save(user);

@@ -8,10 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class GroupgrubbndApplication {
 
     public static void main(String[] args) {
-        // Load environment variables from .env
         Dotenv dotenv = Dotenv.configure().load();
 
-        // Make .env variables accessible to Spring
         dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
         SpringApplication.run(GroupgrubbndApplication.class, args);

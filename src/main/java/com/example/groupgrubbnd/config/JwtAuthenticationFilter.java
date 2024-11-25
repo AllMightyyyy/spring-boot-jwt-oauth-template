@@ -14,11 +14,15 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    @Autowired
-    private JwtUtils jwtUtils;
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private final JwtUtils jwtUtils;
+
+    private final CustomUserDetailsService userDetailsService;
+
+    public JwtAuthenticationFilter(CustomUserDetailsService userDetailsService, JwtUtils jwtUtils) {
+        this.userDetailsService = userDetailsService;
+        this.jwtUtils = jwtUtils;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -34,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch(Exception e) {
-            // Log error
+            logger.error(e.getMessage());
         }
 
         filterChain.doFilter(request, response);
