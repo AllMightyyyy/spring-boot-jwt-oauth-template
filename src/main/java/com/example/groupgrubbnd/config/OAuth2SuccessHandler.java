@@ -3,7 +3,8 @@ package com.example.groupgrubbnd.config;
 import com.example.groupgrubbnd.entity.User;
 import com.example.groupgrubbnd.model.LoginResponseDTO;
 import com.example.groupgrubbnd.repository.UserRepository;
-import com.example.groupgrubbnd.helper.LoginHelper;
+import com.example.groupgrubbnd.service.TokenService;
+import com.example.groupgrubbnd.service.UserService;
 import jakarta.servlet.http.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +21,15 @@ import java.util.UUID;
 @Slf4j
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final LoginHelper loginHelper;
+    private final TokenService tokenService;
     private final UserRepository userRepository;
 
     @Value("${APP_REGISTRATION_URL}")
     private String appRegistrationUrl;
 
     @Autowired
-    public OAuth2SuccessHandler(LoginHelper loginHelper, UserRepository userRepository) {
-        this.loginHelper = loginHelper;
+    public OAuth2SuccessHandler(TokenService tokenService, UserRepository userRepository, UserService userService) {
+        this.tokenService = tokenService;
         this.userRepository = userRepository;
     }
 
@@ -49,13 +50,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (user == null) {
             // Redirect to a page to complete registration
             String tempToken = UUID.randomUUID().toString();
-            loginHelper.storeTempToken(tempToken, email);
+            tokenService.storeTempToken(tempToken, email);
             response.sendRedirect(appRegistrationUrl + "?token=" + tempToken);
             return;
         }
 
         // If user exists, generate tokens and redirect
-        LoginResponseDTO dto = loginHelper.generateTokenForUser(user);
+        LoginResponseDTO dto = tokenService.generateTokenForUser(user);
         String redirectUrl = appRegistrationUrl + "?accessToken=" + dto.getAccessToken();
         response.sendRedirect(redirectUrl);
     }

@@ -2,8 +2,10 @@ package com.example.groupgrubbnd.controllers;
 
 import com.example.groupgrubbnd.entity.User;
 import com.example.groupgrubbnd.model.*;
-import com.example.groupgrubbnd.helper.LoginHelper;
 import com.example.groupgrubbnd.repository.UserRepository;
+import com.example.groupgrubbnd.service.EmailService;
+import com.example.groupgrubbnd.service.TokenService;
+import com.example.groupgrubbnd.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -25,14 +27,18 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Endpoints for user authentication and authorization")
 public class AuthController {
-    private final LoginHelper loginHelper;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final EmailService emailService;
 
     @Value("${FRONTEND_IP}")
     private String frontEndUrl;
 
-    public AuthController(LoginHelper loginHelper, UserRepository userRepository) {
-        this.loginHelper = loginHelper;
+    public AuthController( UserRepository userRepository, UserService userService, TokenService tokenService, EmailService emailService) {
+        this.userService = userService;
+        this.tokenService = tokenService;
+        this.emailService = emailService;
         this.userRepository = userRepository;
     }
 
@@ -51,7 +57,7 @@ public class AuthController {
             if (existingUser != null) {
                 if (!existingUser.isEnabled()) {
                     // Resend verification email for disabled users
-                    loginHelper.sendAccountVerificationMail(existingUser);
+                    emailService.sendAccountVerificationMail(existingUser);
                     return ResponseEntity.status(HttpStatus.ACCEPTED).body(
                             "User already registered but not enabled. A new verification email has been sent.");
                 } else {
@@ -61,7 +67,7 @@ public class AuthController {
             }
 
             // New user registration
-            loginHelper.registerUser(
+            userService.registerUser(
                     signUpDTO.getFirstName(),
                     signUpDTO.getLastName(),
                     signUpDTO.getEmail(),
@@ -88,7 +94,7 @@ public class AuthController {
             @Parameter(description = "User's password", required = true)
             @RequestParam String password) {
         try {
-            LoginResponseDTO dto = loginHelper.login(email, password);
+            LoginResponseDTO dto = userService.login(email, password);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -107,7 +113,7 @@ public class AuthController {
             @Parameter(description = "Refresh token", required = true)
             @RequestParam String refreshToken) {
         try {
-            LoginResponseDTO dto = loginHelper.refreshAccessToken(refreshToken);
+            LoginResponseDTO dto = tokenService.refreshAccessToken(refreshToken);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -125,7 +131,7 @@ public class AuthController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(auth != null && auth.isAuthenticated()) {
             String email = auth.getName();
-            String message = loginHelper.logout(email);
+            String message = userService.logout(email);
             return ResponseEntity.ok(message);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not authenticated");
@@ -141,7 +147,7 @@ public class AuthController {
             @Parameter(description = "Verification token", required = true)
             @RequestParam String token,
             HttpServletResponse response) {
-        String message = loginHelper.verifyAccount(token);
+        String message = userService.verifyAccount(token);
         try {
             if ("Account verified successfully!".equals(message)) {
                 response.sendRedirect(frontEndUrl + "profile");
@@ -161,7 +167,7 @@ public class AuthController {
     @PostMapping("/set-password")
     public ResponseEntity<String> setPassword(
             @Valid @RequestBody SetPasswordRequest request) {
-        String message = loginHelper.setPassword(request.getToken(), request.getNewPassword());
+        String message = userService.setPassword(request.getToken(), request.getNewPassword());
         if ("Password set successfully!".equals(message)) {
             return ResponseEntity.ok(message);
         } else {
@@ -178,7 +184,7 @@ public class AuthController {
     public ResponseEntity<String> initiateResetPassword(
             @Parameter(description = "User's email", required = true)
             @RequestParam String email) {
-        String message = loginHelper.initiateResetPasswordLink(email);
+        String message = userService.initiateResetPasswordLink(email);
         if ("Password reset link sent to your email.".equals(message)) {
             return ResponseEntity.ok(message);
         } else {
@@ -197,7 +203,7 @@ public class AuthController {
             @RequestParam String token,
             @Parameter(description = "New password", required = true)
             @RequestParam String newPassword) {
-        String message = loginHelper.changePasswordWithToken(token, newPassword);
+        String message = userService.changePasswordWithToken(token, newPassword);
         if ("Password changed successfully!".equals(message)) {
             return ResponseEntity.ok(message);
         } else {
@@ -225,7 +231,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("User is already enabled.");
         }
 
-        loginHelper.sendAccountVerificationMail(user);
+        emailService.sendAccountVerificationMail(user);
         return ResponseEntity.ok("Verification email resent successfully.");
     }
 }
