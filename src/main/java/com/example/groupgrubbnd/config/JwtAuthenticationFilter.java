@@ -1,7 +1,7 @@
 package com.example.groupgrubbnd.config;
 
 import com.example.groupgrubbnd.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Nonnull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,9 +25,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@Nonnull HttpServletRequest request,
+                                    @Nonnull HttpServletResponse response,
+                                    @Nonnull FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
             if(jwt != null && jwtUtils.validateJwtToken(jwt)) {

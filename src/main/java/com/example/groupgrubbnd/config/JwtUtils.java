@@ -2,23 +2,36 @@ package com.example.groupgrubbnd.config;
 
 import com.example.groupgrubbnd.entity.User;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtUtils {
+
     @Value("${jwt.secret}")
     private String jwtSecret;
 
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
+
+    private Key signingKey;
+
+    @PostConstruct
+    public void init() {
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalArgumentException("JWT secret must not be null or empty");
+        }
+        signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
 
     /**
      * Generates a JWT token for the authenticated user.
@@ -38,7 +51,7 @@ public class JwtUtils {
                 .claim("userId", ((User) userDetails).getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -49,8 +62,9 @@ public class JwtUtils {
      * @return Email extracted from the token
      */
     public String getEmailFromJwtToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(jwtSecret)
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
@@ -64,26 +78,22 @@ public class JwtUtils {
      */
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            Jwts.parserBuilder()
+                    .setSigningKey(signingKey)
+                    .build()
+                    .parseClaimsJws(authToken);
             return true;
         } catch (ExpiredJwtException e) {
-            // Token expired
+            System.err.println("JWT expired: " + e.getMessage());
         } catch (UnsupportedJwtException e) {
-            // Unsupported token
+            System.err.println("Unsupported JWT: " + e.getMessage());
         } catch (MalformedJwtException e) {
-            // Malformed token
-        } catch (SignatureException e) {
-            // Invalid signature
+            System.err.println("Malformed JWT: " + e.getMessage());
+        } catch (SecurityException e) {
+            System.err.println("Invalid JWT signature: " + e.getMessage());
         } catch (IllegalArgumentException e) {
-            // Empty claims string
+            System.err.println("JWT claims string is empty: " + e.getMessage());
         }
         return false;
-    }
-
-    @PostConstruct
-    public void init() {
-        if (jwtSecret == null || jwtSecret.isEmpty()) {
-            throw new IllegalArgumentException("JWT secret must not be null or empty");
-        }
     }
 }

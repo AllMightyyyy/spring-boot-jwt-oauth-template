@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +27,9 @@ import java.nio.charset.StandardCharsets;
 public class AuthController {
     private final LoginHelper loginHelper;
     private final UserRepository userRepository;
+
+    @Value("${FRONTEND_IP}")
+    private String frontEndUrl;
 
     public AuthController(LoginHelper loginHelper, UserRepository userRepository) {
         this.loginHelper = loginHelper;
@@ -141,9 +144,9 @@ public class AuthController {
         String message = loginHelper.verifyAccount(token);
         try {
             if ("Account verified successfully!".equals(message)) {
-                response.sendRedirect("http://localhost:3000/profile");
+                response.sendRedirect(frontEndUrl + "profile");
             } else {
-                response.sendRedirect("http://localhost:3000/error?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8));
+                response.sendRedirect(frontEndUrl + "error?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             throw new RuntimeException("Error while redirecting", e);

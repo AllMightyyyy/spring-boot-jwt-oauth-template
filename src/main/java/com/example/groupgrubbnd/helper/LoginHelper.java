@@ -49,6 +49,15 @@ public class LoginHelper {
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtUtils jwtUtils;
 
+    @Value("${OAUTH2_GOOGLE_REDIRECT_URI}")
+    private String googleRedirectURI;
+
+    @Value("${SERVER.ADDRESS}")
+    private String serverAddress;
+
+    @Value("${SERVER.PORT}")
+    private String serverPort;
+
     @Autowired
     public LoginHelper(PasswordEncoder passwordEncoder,
                        UserRepository userRepository,
@@ -141,8 +150,8 @@ public class LoginHelper {
 
         // Send verification email with the new token
         String link = String.format("http://%s:%s/api/auth/verify?token=%s",
-                environment.getProperty("server.address", "localhost"),
-                environment.getProperty("server.port", "8081"),
+                environment.getProperty("server.address", serverAddress),
+                environment.getProperty("server.port", serverPort),
                 verification.getToken());
 
         EmailDetails emailDetails = new EmailDetails();
@@ -285,7 +294,7 @@ public class LoginHelper {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code);
-        params.add("redirect_uri", "http://localhost:8081/oauth2/callback/google");
+        params.add("redirect_uri", googleRedirectURI);
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
         params.add("grant_type", "authorization_code");
@@ -353,8 +362,8 @@ public class LoginHelper {
         resetPasswordTokenRepository.save(resetToken);
 
         String link = String.format("http://%s:%s/changepassword?token=%s",
-                environment.getProperty("server.address", "localhost"),
-                environment.getProperty("server.port", "8081"),
+                environment.getProperty("server.address", serverAddress),
+                environment.getProperty("server.port", serverPort),
                 resetToken.getToken());
 
         EmailDetails emailDetails = new EmailDetails();

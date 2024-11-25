@@ -3,11 +3,14 @@ package com.example.groupgrubbnd.config;
 import com.example.groupgrubbnd.service.CustomUserDetailsService;
 import com.example.groupgrubbnd.service.OAuth2UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
@@ -37,12 +40,16 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${FRONTEND_IP}")
+    private String frontEndUrl;
+
     @Autowired
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          OAuth2SuccessHandler oAuth2SuccessHandler,
-                          OAuth2UserServiceImpl oAuth2UserService,
-                          PasswordEncoder passwordEncoder,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            @NonNull CustomUserDetailsService userDetailsService,
+            @NonNull OAuth2SuccessHandler oAuth2SuccessHandler,
+            @NonNull OAuth2UserServiceImpl oAuth2UserService,
+            @NonNull PasswordEncoder passwordEncoder,
+            @NonNull JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
         this.oAuth2UserService = oAuth2UserService;
@@ -61,9 +68,9 @@ public class SecurityConfig {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000") // Frontend origin
+                        .allowedOrigins(frontEndUrl) // Frontend origin
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
@@ -72,10 +79,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(@NonNull HttpSecurity http) throws Exception {
         http
                 // Disable CSRF for stateless REST API
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 // Stateless session management
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Authorization rules

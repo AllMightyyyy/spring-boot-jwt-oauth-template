@@ -4,7 +4,6 @@ import org.springframework.context.annotation.*;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.lettuce.*;
 import org.springframework.data.redis.core.*;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
